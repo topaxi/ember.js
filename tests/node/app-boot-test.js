@@ -54,7 +54,7 @@ function registerDOMHelper(app) {
     initialize: function(app) {
       app.registry.register('renderer:-dom', {
         create: function() {
-          return new Ember.View._Renderer(domHelper);
+          return new Ember.View._Renderer(domHelper, false);
         }
       });
     }
