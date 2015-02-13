@@ -1009,9 +1009,7 @@ var View = CoreView.extend(
   renderToElement: function() {
     var element = this.renderer._dom.createElement('body');
 
-    run(this, function() {
-      this.renderer.appendTo(this, element);
-    });
+    this.renderer.appendTo(this, element);
 
     return element;
   },

@@ -72,6 +72,15 @@ function registerTemplates(app, templates) {
   });
 }
 
+function renderToElement(instance) {
+  var element;
+  Ember.run(function() {
+    element = instance.view.renderToElement();
+  });
+
+  return element;
+}
+
 function assertHTMLMatches(actualElement, expectedHTML) {
   var serializer = new SimpleDOM.HTMLSerializer(SimpleDOM.voidMap);
   var serialized = serializer.serialize(actualElement);
@@ -166,7 +175,7 @@ QUnit.test("It is possible to render a view with {{link-to}} in Node", function(
   app.visit('/').then(function(instance) {
     QUnit.start();
 
-    var element = instance.view.renderToElement();
+    var element = renderToElement(instance);
 
     assertHTMLMatches(element.firstChild, /^<div id="ember\d+" class="ember-view"><h1><a id="ember\d+" class="ember-view" href="\/photos">Go to photos<\/a><\/h1><\/div>$/);
   });
@@ -197,7 +206,7 @@ QUnit.test("It is possible to render outlets in Node", function() {
   app.visit('/').then(function(instance) {
     QUnit.start();
 
-    var element = instance.view.renderToElement();
+    var element = renderToElement(instance);
 
     assertHTMLMatches(element.firstChild, /<div id="ember(.*)" class="ember-view"><p><span>index<\/span><\/p><\/div>/);
   });
@@ -205,7 +214,7 @@ QUnit.test("It is possible to render outlets in Node", function() {
   app.visit('/photos').then(function(instance) {
     QUnit.start();
 
-    var element = instance.view.renderToElement();
+    var element = renderToElement(instance);
 
     assertHTMLMatches(element.firstChild, /<div id="ember(.*)" class="ember-view"><p><em>photos<\/em><\/p><\/div>/);
   });
