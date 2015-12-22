@@ -90,19 +90,19 @@ QUnit.module('The {{link-to}} helper: .transitioning-in .transitioning-out CSS c
   }
 });
 
+function assertHasClass(className) {
+  var i = 1;
+  while (i < arguments.length) {
+    var $a = arguments[i];
+    var shouldHaveClass = arguments[i + 1];
+    equal($a.hasClass(className), shouldHaveClass, $a.attr('id') + ' should ' + (shouldHaveClass ? '' : 'not ') + 'have class ' + className);
+    i += 2;
+  }
+}
+
 QUnit.test('while a transition is underway', function() {
   expect(18);
   bootApplication();
-
-  function assertHasClass(className) {
-    var i = 1;
-    while (i < arguments.length) {
-      var $a = arguments[i];
-      var shouldHaveClass = arguments[i + 1];
-      equal($a.hasClass(className), shouldHaveClass, $a.attr('id') + ' should ' + (shouldHaveClass ? '' : 'not ') + 'have class ' + className);
-      i += 2;
-    }
-  }
 
   var $index = jQuery('#index-link');
   var $about = jQuery('#about-link');
@@ -160,16 +160,6 @@ QUnit.test('while a transition is underway with nested link-to\'s', function() {
 
   bootApplication();
 
-  function assertHasClass(className) {
-    var i = 1;
-    while (i < arguments.length) {
-      var $a = arguments[i];
-      var shouldHaveClass = arguments[i + 1];
-      equal($a.hasClass(className), shouldHaveClass, $a.attr('id') + ' should ' + (shouldHaveClass ? '' : 'not ') + 'have class ' + className);
-      i += 2;
-    }
-  }
-
   var $index = jQuery('#index-link');
   var $about = jQuery('#about-link');
   var $other = jQuery('#other-link');
@@ -209,4 +199,46 @@ QUnit.test('while a transition is underway with nested link-to\'s', function() {
   assertHasClass('active', $index, false, $about, true, $other, false);
   assertHasClass('ember-transitioning-in', $index, false, $about, false, $other, false);
   assertHasClass('ember-transitioning-out', $index, false, $about, false, $other, false);
+});
+
+QUnit.test('only triggers on specific link-to with dynamic segment', function() {
+  expect(24);
+
+  Router.map(function() {
+    this.route('color', { path: '/:color' });
+  });
+
+  App.ColorRoute = Ember.Route.extend({
+    model() {
+      aboutDefer = Ember.RSVP.defer();
+      return aboutDefer.promise;
+    }
+  });
+
+  Ember.TEMPLATES.application = compile(`
+    {{outlet}}
+    {{link-to 'Index' 'index'         id='index-link'}}
+    {{link-to 'Red'   'color' 'red'   id='red-link'}}
+    {{link-to 'Green' 'color' 'green' id='green-link'}}
+    {{link-to 'Blue'  'color' 'blue'  id='blue-link'}}
+  `);
+
+  bootApplication();
+
+  let $index = Ember.$('#index-link');
+  let $red   = Ember.$('#red-link');
+  let $green = Ember.$('#green-link');
+  let $blue  = Ember.$('#blue-link');
+
+  Ember.run($green, 'click');
+
+  assertHasClass('active', $index, true, $red, false, $green, false, $blue, false);
+  assertHasClass('ember-transitioning-in', $index, false, $red, false, $green, true, $blue, false);
+  assertHasClass('ember-transitioning-out', $index, true, $red, false, $green, false, $blue, false);
+
+  Ember.run(aboutDefer, 'resolve');
+
+  assertHasClass('active', $index, false, $red, false, $green, true, $blue, false);
+  assertHasClass('ember-transitioning-in', $index, false, $red, false, $green, false, $blue, false);
+  assertHasClass('ember-transitioning-out', $index, false, $red, false, $green, false, $blue, false);
 });
